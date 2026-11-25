@@ -1,0 +1,8 @@
+{
+  "CFBundleDisplayName": "EcoMap",
+  "NSLocationWhenInUseUsageDescription": "EcoMap, kirlilik bildirimlerini haritada doğru yere koymak ve yakınınızdaki bildirimleri göstermek için konumunuzu kullanır.",
+  "NSCameraUsageDescription": "EcoMap, kirlilik ve temizlenen alanların fotoğrafını çekmek için kamerayı kullanır.",
+  "NSPhotoLibraryUsageDescription": "EcoMap, kirlilik bildirimi için galerinizden fotoğraf seçmenize izin verir.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoMap konumunuzu yalnızca uygulama açıkken, kirlilik bildirimlerini haritada doğru yere koymak için kullanır; arka planda konum takibi yapmaz.",
+  "NSLocationAlwaysUsageDescription": "EcoMap konumunuzu yalnızca uygulama açıkken, kirlilik bildirimlerini haritada doğru yere koymak için kullanır; arka planda konum takibi yapmaz."
+}

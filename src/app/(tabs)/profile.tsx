@@ -101,7 +101,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       <View style={styles.header}>
         <Text style={styles.name}>{profile.display_name}</Text>
         <Text style={styles.muted}>{session?.user.email}</Text>

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ECOPUAN_HOME } from '@/earthcare/components/ui';
 import { useEcPoints } from '@/earthcare/points-context';
 import { useI18n } from '@/i18n';
 import { fetchReports } from '@/lib/api';
@@ -188,7 +189,7 @@ export default function MapScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('common.points', { n: liveBalance ?? profile.total_points })}
               accessibilityHint="EcoPuan ve ödüller"
-              onPress={() => router.navigate('/ecopuan')}
+              onPress={() => router.navigate(ECOPUAN_HOME)}
               style={({ pressed }) => [styles.points, pressed && styles.pressed]}>
               <Ionicons name="leaf" size={16} color={colors.primary} />
               <Text style={styles.pointsLabel}>{liveBalance ?? profile.total_points}</Text>

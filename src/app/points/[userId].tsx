@@ -22,7 +22,7 @@ export default function AdminCitizenScreen() {
       {!allowed ? (
         <Forbidden />
       ) : (
-        <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+        <ScrollView style={styles.flex} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
           {error ? <EcNotice tone="danger" text={error} /> : null}
           {loading && !citizen ? <Loading /> : null}
           {!loading && !citizen && !error ? <EcNotice tone="danger" text="Vatandaş bulunamadı." /> : null}

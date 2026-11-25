@@ -1,5 +1,8 @@
 // Minimal translation layer: five dictionaries, one hook.
 // The chosen language is remembered on the device and, for signed-in users, in their profile.
+// Native localStorage (SQLite-backed) must exist before the stored language is read.
+import 'expo-sqlite/localStorage/install';
+
 import { getLocales } from 'expo-localization';
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 

@@ -7,25 +7,46 @@
     "icon": "./assets/images/icon.png",
     "scheme": "ecomap",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#FFFFFF",
+    "primaryColor": "#059669",
+    "description": "Çevre kirliliğini haritada bildir, temizliklere katıl, EcoPuan kazan ve ödüllerde kullan.",
+    "locales": {
+      "tr": "./locales/tr.json",
+      "en": "./locales/en.json"
+    },
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.ecomap.app",
       "supportsTablet": false,
-      "infoPlist": {}
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "tr",
+        "CFBundleAllowMixedLocalizations": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.ecomap.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#059669",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -39,7 +60,8 @@
         {
           "backgroundColor": "#059669",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 160,
+          "resizeMode": "contain"
         }
       ],
       "expo-sqlite",
@@ -47,16 +69,25 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "EcoMap uses your location to place pollution reports on the map and to show reports near you."
+          "locationWhenInUsePermission": "EcoMap, kirlilik bildirimlerini haritada doğru yere koymak ve yakınınızdaki bildirimleri göstermek için konumunuzu kullanır.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "locationAlwaysAndWhenInUsePermission": "EcoMap konumunuzu yalnızca uygulama açıkken, kirlilik bildirimlerini haritada doğru yere koymak için kullanır; arka planda konum takibi yapmaz.",
+          "locationAlwaysPermission": "EcoMap konumunuzu yalnızca uygulama açıkken, kirlilik bildirimlerini haritada doğru yere koymak için kullanır; arka planda konum takibi yapmaz.",
+          "locationFullAccuracyPermission": "Kirlilik bildiriminin haritada tam doğru noktaya konabilmesi için hassas konum gerekir.",
+          "motionUsagePermission": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "cameraPermission": "EcoMap uses the camera to photograph pollution and cleaned areas.",
-          "photosPermission": "EcoMap lets you choose an existing photo of pollution to report."
+          "cameraPermission": "EcoMap, kirlilik ve temizlenen alanların fotoğrafını çekmek için kamerayı kullanır.",
+          "photosPermission": "EcoMap, kirlilik bildirimi için galerinizden fotoğraf seçmenize izin verir.",
+          "microphonePermission": false
         }
-      ]
+      ],
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,0 +1,8 @@
+{
+  "CFBundleDisplayName": "EcoMap",
+  "NSLocationWhenInUseUsageDescription": "EcoMap uses your location to place pollution reports on the map and to show reports near you.",
+  "NSCameraUsageDescription": "EcoMap uses the camera to photograph pollution and cleaned areas.",
+  "NSPhotoLibraryUsageDescription": "EcoMap lets you choose a photo from your library for a pollution report.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background.",
+  "NSLocationAlwaysUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background."
+}

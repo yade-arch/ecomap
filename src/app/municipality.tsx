@@ -94,7 +94,7 @@ export default function MunicipalityScreen() {
   if (!access.is_staff && !showPoints) return <EmptyView icon="lock-closed-outline" text={t('mod.notStaff')} />;
   if (showPoints && (section === 'points' || !access.is_staff)) {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         {access.is_staff ? segment : null}
         <PointsAdminPanel />
       </ScrollView>
@@ -128,6 +128,9 @@ export default function MunicipalityScreen() {
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

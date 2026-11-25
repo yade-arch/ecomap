@@ -65,7 +65,7 @@ export default function SignUpScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       <Text style={styles.title}>{t('auth.signUpTitle')}</Text>
       {error ? <Notice tone="danger" text={error} /> : null}
       <Field

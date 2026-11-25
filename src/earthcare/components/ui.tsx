@@ -1,7 +1,8 @@
 // Shared EARTHCARE building blocks (header, cards, balance, buttons, reward glyphs).
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { type Href, useRouter } from 'expo-router';
-import { type ComponentProps, type ReactNode, useEffect, useState } from 'react';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { type ComponentProps, type ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -41,16 +42,21 @@ export function EcScroll({
       style={styles.screen}
       contentContainerStyle={[styles.scrollContent, { maxWidth }, contentStyle]}
       refreshControl={refreshControl}
-      keyboardShouldPersistTaps="handled">
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive">
       {children}
     </ScrollView>
   );
 }
 
+/** The EcoPuan tab's home. Typed-routes lists it as /ecopuan/index; the real URL is /ecopuan. */
+export const ECOPUAN_HOME = '/ecopuan' as Href;
+
 const MENU: { label: string; icon: IonName; href: Href }[] = [
   { label: 'Harita', icon: 'map-outline', href: '/map' },
   { label: 'Sıralama', icon: 'trophy-outline', href: '/leaderboard' },
-  { label: 'EcoPuan', icon: 'leaf-outline', href: '/ecopuan' },
+  { label: 'EcoPuan', icon: 'leaf-outline', href: ECOPUAN_HOME },
   { label: 'Katkı Sağla', icon: 'camera-outline', href: '/ecopuan/contribute' },
   { label: 'Ödüller', icon: 'gift-outline', href: '/ecopuan/rewards' },
   { label: 'Puan Geçmişi', icon: 'time-outline', href: '/ecopuan/history' },
@@ -102,6 +108,13 @@ export function EcHeader({
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  // White status-bar icons on the green header while this screen is in front; dark again when it leaves.
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('light');
+      return () => setStatusBarStyle('dark');
+    }, []),
+  );
   return (
     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
       <View style={styles.leavesRight} pointerEvents="none">
@@ -121,7 +134,7 @@ export function EcHeader({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Geri"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/ecopuan'))}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace(ECOPUAN_HOME))}
             hitSlop={10}
             style={styles.headerBtn}>
             <Ionicons name="chevron-back" size={26} color={ec.white} />

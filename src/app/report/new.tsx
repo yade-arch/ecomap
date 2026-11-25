@@ -292,7 +292,7 @@ export default function NewReportScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       {error ? <Notice tone="danger" text={error} /> : null}
 
       {photo ? (
