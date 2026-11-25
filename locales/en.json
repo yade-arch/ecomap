@@ -1,9 +1,11 @@
 {
-  "CFBundleDisplayName": "EcoMap",
-  "NSLocationWhenInUseUsageDescription": "EcoMap uses your location to place pollution reports on the map and to show reports near you.",
-  "NSCameraUsageDescription": "EcoMap uses the camera to photograph pollution and cleaned areas.",
-  "NSPhotoLibraryUsageDescription": "EcoMap does not read your photo library; to prevent fake photos, all photos are taken with the in-app camera.",
-  "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background.",
-  "NSLocationAlwaysUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background.",
-  "NSMotionUsageDescription": "EcoMap counts your steps in the Eco-Mobility section to reward walking with EcoPoints."
+  "ios": {
+    "CFBundleDisplayName": "EcoMap",
+    "NSLocationWhenInUseUsageDescription": "EcoMap uses your location to place pollution reports on the map and to show reports near you.",
+    "NSCameraUsageDescription": "EcoMap uses the camera to photograph pollution and cleaned areas.",
+    "NSPhotoLibraryUsageDescription": "EcoMap does not read your photo library; to prevent fake photos, all photos are taken with the in-app camera.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background.",
+    "NSLocationAlwaysUsageDescription": "EcoMap only uses your location while the app is open, to place pollution reports on the map. It does not track your location in the background.",
+    "NSMotionUsageDescription": "EcoMap counts your steps in the Eco-Mobility section to reward walking with EcoPoints."
+  }
 }
