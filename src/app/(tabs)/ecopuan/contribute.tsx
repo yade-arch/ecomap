@@ -5,7 +5,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { submitCleanup, submitReport } from '@/lib/api';
@@ -98,22 +98,15 @@ export default function ContributeScreen() {
     };
   }, [userId, applyCoords]);
 
+  // Live camera only: the gallery is never offered (prevents downloaded or AI-made photos).
   const pick = async (slot: Slot) => {
     setError(null);
-    const choose = async (source: 'camera' | 'gallery') => {
-      try {
-        const photo = await pickPhoto(source);
-        if (photo) (slot === 'before' ? setBefore : setAfter)(photo);
-      } catch (e) {
-        setError(ecErrorText(e));
-      }
-    };
-    if (Platform.OS === 'web') return choose('gallery');
-    Alert.alert(slot === 'before' ? 'Öncesi fotoğrafı' : 'Sonrası fotoğrafı', undefined, [
-      { text: 'Fotoğraf çek', onPress: () => void choose('camera') },
-      { text: 'Galeriden seç', onPress: () => void choose('gallery') },
-      { text: 'Vazgeç', style: 'cancel' },
-    ]);
+    try {
+      const photo = await pickPhoto();
+      if (photo) (slot === 'before' ? setBefore : setAfter)(photo);
+    } catch (e) {
+      setError(ecErrorText(e));
+    }
   };
 
   const send = async () => {
@@ -230,12 +223,12 @@ export default function ContributeScreen() {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Fotoğraf Yükle"
+            accessibilityLabel="Fotoğraf Çek"
             onPress={() => void pick(before ? 'after' : 'before')}
             style={({ pressed }) => [styles.drop, pressed && { backgroundColor: ec.mintDeep }]}>
-            <Ionicons name="cloud-upload-outline" size={34} color={ec.green} />
-            <Text style={styles.dropTitle}>Fotoğraf Yükle</Text>
-            <Text style={styles.dropSub}>Öncesi ve sonrası fotoğraflarını ekleyin.</Text>
+            <Ionicons name="camera-outline" size={34} color={ec.green} />
+            <Text style={styles.dropTitle}>Fotoğraf Çek</Text>
+            <Text style={styles.dropSub}>Öncesi ve sonrası fotoğraflarını kamerayla çekin. Konum ve zaman otomatik eklenir.</Text>
           </Pressable>
 
           <View style={styles.pair}>

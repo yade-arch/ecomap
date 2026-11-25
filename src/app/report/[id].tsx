@@ -157,8 +157,8 @@ export default function ReportDetailScreen() {
     if (!requireSignIn() || !userId) return;
     setNotice(null);
     try {
-      // The after-photo must be fresh, so the camera is used (the browser only has a file picker).
-      const photo = await pickPhoto(Platform.OS === 'web' ? 'gallery' : 'camera');
+      // The after-photo must be fresh: live camera only (pickPhoto never opens the gallery).
+      const photo = await pickPhoto();
       if (!photo) return;
       setBusy('cleanup');
       setBusyLabel(t('new.locating'));

@@ -178,5 +178,113 @@ r = await as(ELIF, 'select public.delete_my_account()');
 ok(!r.error, 'citizen with audit history can delete account ' + (r.error?.message ?? ''));
 ok((await db.query(`select count(*)::int n from public.points_audit_log where target_user_id is null`)).rows[0].n === 2, 'audit rows kept, target set to null');
 
+// ---------------------------------------------------------------------------
+// Gizli Hazine (mystery drops)
+// ---------------------------------------------------------------------------
+console.log('\n[mystery drops]');
+const MARMARIS = { lat: 36.8510, lng: 28.2740 };
+r = await as(AYSE, `select public.muni_create_mystery_drop('Sahil', null, $1, $2, 500, 'multiplier', 2, 6)`, [MARMARIS.lat, MARMARIS.lng]);
+ok(r.error?.code === '42501', 'citizen cannot open a drop (403)');
+r = await as(ADMIN, `select public.muni_create_mystery_drop('Sahil Temizliği', 'Kordon boyu', $1, $2, 500, 'multiplier', 2, 6) x`, [MARMARIS.lat, MARMARIS.lng]);
+ok(r.rows?.[0].x.label === '2x', 'admin opens a 2x drop: ' + (r.error?.message ?? r.rows?.[0].x.label));
+const dropId = r.rows?.[0].x.id;
+r = await as(AYSE, `select count(*)::int n from public.notifications where type = 'mystery_drop'`);
+ok(r.rows[0].n === 1, 'citizen in Marmaris got an in-app mystery_drop notification');
+r = await as('anon', 'select count(*)::int n from public.mystery_drops');
+ok(r.rows?.[0].n === 1, 'active drop is visible to everyone (map)');
+
+async function makeReport(userId, lat, lng) {
+  const res = await db.query(
+    `insert into public.pollution_reports (reporter_id, photo_path, latitude, longitude, ai_analysis_status, user_severity)
+     values ($1::uuid, $1::text || '/r.jpg', $2, $3, 'completed', 'medium') returning id`, [userId, lat, lng]);
+  return res.rows[0].id;
+}
+const before = await bal(MEHMET);
+const rep1 = await makeReport(MEHMET, MARMARIS.lat + 0.001, MARMARIS.lng); // ~110 m from centre
+await db.query(`select private.award_points($1, 'report_reward', 20, $2, null, 'report_accepted')`, [MEHMET, rep1]);
+ok((await bal(MEHMET)) === before + 40, 'report inside drop: 20 + 20 bonus (2x)');
+r = await db.query(`select reason, mystery_drop_id from public.points_transactions where report_id = $1 and transaction_type = 'mystery_bonus'`, [rep1]);
+ok(r.rows[0]?.reason.startsWith('Gizli Hazine 2x Bonusu') && r.rows[0].mystery_drop_id === dropId, 'ledger reason "Gizli Hazine 2x Bonusu…" linked to the drop');
+const rep2 = await makeReport(MEHMET, MARMARIS.lat + 0.02, MARMARIS.lng); // ~2.2 km away
+await db.query(`select private.award_points($1, 'report_reward', 20, $2, null, 'report_accepted')`, [MEHMET, rep2]);
+ok((await bal(MEHMET)) === before + 60, 'report outside drop: no bonus');
+await db.query(`select private.reverse_report_reward($1, 'test')`, [rep1]);
+ok((await bal(MEHMET)) === before + 20, 'reversing a reward also reverses its drop bonus');
+r = await as(AYSE, 'select public.muni_end_mystery_drop($1)', [dropId]);
+ok(r.error?.code === '42501', 'citizen cannot end a drop');
+r = await as(ADMIN, 'select public.muni_end_mystery_drop($1)', [dropId]);
+ok(!r.error, 'admin ends the drop early');
+const rep3 = await makeReport(MEHMET, MARMARIS.lat, MARMARIS.lng);
+await db.query(`select private.award_points($1, 'report_reward', 20, $2, null, 'report_accepted')`, [MEHMET, rep3]);
+ok((await bal(MEHMET)) === before + 40, 'after the drop ended: no bonus');
+r = await as(ADMIN, `select public.muni_create_mystery_drop('Park', null, $1, $2, 300, 'bonus', 50, 12) x`, [MARMARIS.lat, MARMARIS.lng]);
+ok(r.rows?.[0].x.label === '+50 EC', 'fixed bonus drop label +50 EC');
+const rep4 = await makeReport(MEHMET, MARMARIS.lat, MARMARIS.lng);
+await db.query(`select private.award_points($1, 'report_reward', 20, $2, null, 'report_accepted')`, [MEHMET, rep4]);
+ok((await bal(MEHMET)) === before + 110, 'fixed bonus drop: 20 + 50');
+r = await as(ADMIN, `select public.muni_create_mystery_drop('X', null, $1, $2, 300, 'multiplier', 9, 6)`, [MARMARIS.lat, MARMARIS.lng]);
+ok(r.error?.message === 'invalid_reward', 'multiplier above 5x refused');
+
+// ---------------------------------------------------------------------------
+// Eko-Ulaşım: walking
+// ---------------------------------------------------------------------------
+console.log('\n[eco walking]');
+const ayseStart = await bal(AYSE);
+r = await as(AYSE, 'select public.sync_walk_steps(6200) x');
+ok(r.rows?.[0].x.steps === 6200 && r.rows[0].x.points_today === 40, '6.200 steps -> 40 EC (2 x 20)');
+ok((await bal(AYSE)) === ayseStart + 40, 'balance +40');
+r = await as(AYSE, 'select public.sync_walk_steps(6200) x');
+ok(r.rows?.[0].x.points_added === 0, 'same steps again: nothing added (idempotent)');
+r = await as(AYSE, 'select public.sync_walk_steps(90000) x');
+ok(r.rows?.[0].x.steps <= 6200 + 600, 'sudden +84k steps clamped by time (anti-abuse): ' + r.rows?.[0].x.steps);
+await db.query(`update public.eco_mobility_logs set updated_at = now() - interval '10 hours' where user_id = $1 and kind = 'walk'`, [AYSE]);
+r = await as(AYSE, 'select public.sync_walk_steps(40000) x');
+ok(r.rows?.[0].x.points_today === 100, 'daily cap 100 EC reached');
+ok((await bal(AYSE)) === ayseStart + 100, 'balance capped at +100 for the day');
+r = await as(AYSE, `select count(*)::int n from public.points_transactions where user_id = $1 and transaction_type = 'eco_walk' and reason = 'Eko-Ulaşım: Yürüyüş'`, [AYSE]);
+ok(r.rows[0].n >= 2, 'ledger shows "Eko-Ulaşım: Yürüyüş"');
+
+// ---------------------------------------------------------------------------
+// Eko-Ulaşım: bikes
+// ---------------------------------------------------------------------------
+console.log('\n[eco bikes]');
+const mStart = await bal(MEHMET);
+r = await as(MEHMET, `select public.start_bike_ride('mrm-042', $1, $2) x`, [MARMARIS.lat, MARMARIS.lng]);
+const ride1 = r.rows?.[0].x.ride_id;
+ok(r.rows?.[0].x.status === 'started' && r.rows[0].x.bike_code === 'MRM-042', 'ride started, bike code normalised');
+r = await as(MEHMET, `select public.start_bike_ride('MRM-043', $1, $2) x`, [MARMARIS.lat, MARMARIS.lng]);
+ok(r.rows?.[0].x.status === 'already_active', 'only one active ride per user');
+await db.query(`update public.bike_rides set started_at = now() - interval '40 minutes' where id = $1`, [ride1]);
+r = await as(MEHMET, `select public.finish_bike_ride($1, $2, $3, 9000) x`, [ride1, MARMARIS.lat + 0.05, MARMARIS.lng]);
+ok(r.rows?.[0].x.points === 90, '40 min / 9 km ride -> 3 x 30 = 90 EC: ' + JSON.stringify(r.rows?.[0].x ?? r.error?.message));
+r = await as(MEHMET, `select public.start_bike_ride('MRM-042', $1, $2) x`, [MARMARIS.lat, MARMARIS.lng]);
+const ride2 = r.rows?.[0].x.ride_id;
+await db.query(`update public.bike_rides set started_at = now() - interval '10 minutes' where id = $1`, [ride2]);
+r = await as(MEHMET, `select public.finish_bike_ride($1, null, null, 80000) x`, [ride2]);
+ok(r.rows?.[0].x.distance_m <= 5834, 'claimed 80 km in 10 min cut to max speed: ' + r.rows?.[0].x.distance_m + ' m');
+ok(r.rows?.[0].x.points === 30, 'daily bike cap 120 EC: only 30 more given');
+ok((await bal(MEHMET)) === mStart + 120, 'balance +120 (cap)');
+r = await as(MEHMET, `select public.start_bike_ride('MRM-1', null, null) x`);
+r = await as(MEHMET, `select public.finish_bike_ride($1, null, null, 100) x`, [r.rows[0].x.ride_id]);
+ok(r.rows?.[0].x.status === 'too_short', 'ride under 1 minute does not count');
+r = await as(MEHMET, `select public.record_municipal_bike_ride($1, 'MRM-9', now() - interval '1 hour', now(), 12000)`, [MEHMET]);
+ok(!!r.error, 'municipal rental webhook RPC is not callable from the app');
+r = await as(AYSE, `select count(*)::int n from public.bike_rides`);
+ok(r.rows[0].n === 0, "citizen cannot see someone else's rides");
+
+// ---------------------------------------------------------------------------
+// Camera capture metadata
+// ---------------------------------------------------------------------------
+console.log('\n[photo capture metadata]');
+await db.query(`insert into storage.objects (bucket_id, name, owner) values ('report-photos', $1::text || '/cap.jpg', $1::uuid)`, [AYSE]);
+r = await as(AYSE, `select public.record_photo_capture('report-photos', $1 || '/cap.jpg', 36.85, 28.27, 6.5, now()) x`, [AYSE]);
+ok(r.rows?.[0].x.status === 'ok', 'capture metadata recorded with GPS + server time');
+r = await as(AYSE, `select public.record_photo_capture('report-photos', $1 || '/cap.jpg', 1, 1, 1, now()) x`, [MEHMET]);
+ok(r.error?.message === 'invalid_photo', "cannot attach metadata to someone else's photo");
+r = await as(MEHMET, 'select count(*)::int n from public.photo_captures');
+ok(r.rows[0].n === 0, 'other citizens cannot read capture metadata');
+r = await as(ADMIN, 'select latitude, server_recorded_at from public.photo_captures');
+ok(r.rows?.length === 1 && r.rows[0].server_recorded_at, 'municipal staff see GPS + server timestamp');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

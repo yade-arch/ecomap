@@ -7,6 +7,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { MysteryAdminPanel } from '@/earthcare/components/mystery-admin-panel';
 import { PointsAdminPanel } from '@/earthcare/components/points-admin-panel';
 import { formatDateTime, type StringKey, useI18n } from '@/i18n';
 import { fetchMuniReports, fetchMuniStats } from '@/lib/api';
@@ -20,6 +21,12 @@ import { Button, Chip, EmptyView, LoadingView, Notice, SeverityBadge } from '@/u
 import { colors, font, radius, spacing } from '@/ui/theme';
 
 type Filter = 'open' | 'mine' | 'closed' | 'all';
+type Section = 'reports' | 'points' | 'drops';
+const SECTIONS: { key: Section; icon: 'map-outline' | 'people-outline' | 'star-outline'; label: StringKey }[] = [
+  { key: 'reports', icon: 'map-outline', label: 'panel.sectionReports' },
+  { key: 'points', icon: 'people-outline', label: 'panel.sectionPoints' },
+  { key: 'drops', icon: 'star-outline', label: 'panel.sectionDrops' },
+];
 const FILTERS: { key: Filter; label: StringKey }[] = [
   { key: 'open', label: 'panel.open' },
   { key: 'mine', label: 'panel.mine' },
@@ -37,7 +44,9 @@ export default function MunicipalityScreen() {
   const { userId, profile, access } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams<{ section?: string }>();
-  const [section, setSection] = useState<'reports' | 'points'>(params.section === 'points' ? 'points' : 'reports');
+  const [section, setSection] = useState<Section>(
+    params.section === 'points' || params.section === 'drops' ? params.section : 'reports',
+  );
   const [filter, setFilter] = useState<Filter>('open');
   const [reports, setReports] = useState<Report[]>([]);
   const [stats, setStats] = useState<MuniStats | null>(null);
@@ -71,7 +80,7 @@ export default function MunicipalityScreen() {
   const showPoints = !!access.is_municipality_admin;
   const segment = showPoints ? (
     <View style={styles.segment} accessibilityRole="tablist">
-      {(['reports', 'points'] as const).map((key) => (
+      {SECTIONS.map(({ key, icon, label }) => (
         <Pressable
           key={key}
           accessibilityRole="tab"
@@ -79,12 +88,12 @@ export default function MunicipalityScreen() {
           onPress={() => setSection(key)}
           style={[styles.segmentBtn, section === key && styles.segmentBtnOn]}>
           <Ionicons
-            name={key === 'reports' ? 'map-outline' : 'people-outline'}
+            name={icon}
             size={16}
             color={section === key ? colors.primaryDark : colors.textMuted}
           />
           <Text style={[styles.segmentText, section === key && styles.segmentTextOn]} numberOfLines={1}>
-            {t(key === 'reports' ? 'panel.sectionReports' : 'panel.sectionPoints')}
+            {t(label)}
           </Text>
         </Pressable>
       ))}
@@ -92,11 +101,11 @@ export default function MunicipalityScreen() {
   ) : null;
 
   if (!access.is_staff && !showPoints) return <EmptyView icon="lock-closed-outline" text={t('mod.notStaff')} />;
-  if (showPoints && (section === 'points' || !access.is_staff)) {
+  if (showPoints && (section !== 'reports' || !access.is_staff)) {
     return (
       <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         {access.is_staff ? segment : null}
-        <PointsAdminPanel />
+        {section === 'drops' ? <MysteryAdminPanel /> : <PointsAdminPanel />}
       </ScrollView>
     );
   }

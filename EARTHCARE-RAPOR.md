@@ -2,7 +2,28 @@
 
 Tarih: 25.11.2026 · Hiçbir şey uzak Supabase'e gönderilmedi, git commit'i yapılmadı.
 
-## 00. Arayüz temizliği + sunucu kurulumu (son tur)
+## 000. Gizli Hazine, Eko-Ulaşım ve yalnızca kamera (son tur)
+
+**Veritabanı** — `20261126090000_mystery_eco_enums.sql`, `20261126090100_mystery_drops_eco_mobility.sql` (yerelde test edildi, **uzak Supabase'e henüz uygulanmadı**):
+- `mystery_drops` (merkez, yarıçap 50–5000 m, `multiplier` 1,5–5x veya `bonus` 5–500 EC, başlangıç/bitiş, erken sonlandırma). RPC: `muni_create_mystery_drop`, `muni_end_mystery_drop` (yalnızca municipality_admin, aksi 403). Açılışta o şehirdeki kullanıcılara uygulama içi bildirim.
+- Bonus **trigger** ile: `report_reward` / `cleanup_reward` yazıldığında, katkı anında (rapor gönderimi / temizlik gönderimi) bölge içindeyse `mystery_bonus` defter kaydı ("Gizli Hazine 2x Bonusu: …"); ödül iptal edilirse bonus da iptal.
+- `eco_mobility_logs` (gün × yürüyüş/bisiklet), `bike_rides`. RPC: `sync_walk_steps` (3.000 adım = +20 EC, günde ≤100 EC, zamana göre makul olmayan adım artışı kırpılır), `start_bike_ride` / `finish_bike_ride` / `cancel_bike_ride` (15 dk veya 3 km = +30 EC, günde ≤120 EC, süre sunucu saatinden, mesafe 35 km/s hızla sınırlı, 1 dk altı sayılmaz), `record_municipal_bike_ride` (belediye kiralama sistemi için, yalnızca sunucu anahtarı).
+- `photo_captures`: her fotoğraf için çekim GPS'i, doğruluk, cihaz saati ve **sunucu zaman damgası** (`record_photo_capture`). Yalnızca yükleyen ve belediye personeli görür.
+- Kurallar `app_config`'te (`eco.*`); realtime: `mystery_drops`, `bike_rides`, `eco_mobility_logs`.
+
+**Uygulama**
+- Harita: aktif bölgeler altın daire + ★2x simgesi; üstte "2x EcoPuan Bölgesi • Kalan Süre: 23s 45d" şeridi (dokununca bölgeye gider), canlı güncellenir.
+- Belediye Paneli → **Gizli Hazine** sekmesi: haritaya dokunarak / "Konumumu kullan" ile merkez, yarıçap, çarpan veya sabit bonus, 6/12/24/48 saat, aktif & geçmiş listesi, erken sonlandırma.
+- Yakındaki telefonlara yerel bildirim (`expo-notifications`): yeni bölge açıldığında cihazın son konumu bölgeye ≤3 km ise.
+- EcoPuan → **Eko-Ulaşım** (menü + ana sayfa kartı): adım, km, CO₂ tasarrufu, sonraki ödüle ilerleme çubuğu, tek dokunuş izin kartı; belediye bisikleti başlat/bitir, canlı süre-mesafe, son sürüşler.
+- **Yalnızca kamera:** galeri seçeneği her yerden kaldırıldı (`pickPhoto()` sadece `launchCameraAsync`); fotoğrafa çekim anındaki GPS eklenir, yüklemede sunucu zamanı kaydedilir; rapor detayında personel "Fotoğraf doğrulaması" kutusunu görür (bildirim noktasına uzaklık 300 m'yi aşarsa uyarı rengi).
+- İzinler: + `NSMotionUsageDescription` / `ACTIVITY_RECOGNITION`; galeri okuma (`READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VISUAL_USER_SELECTED`) engellendi. iOS'ta `NSPhotoLibraryUsageDescription` metni "galeriye erişmez" diye güncellendi (anahtar, App Store'un eksik amaç metni hatasını önlemek için duruyor).
+
+**Bilinen sınırlar:** Android'de adımlar yalnızca EcoMap açıkken sayılır (Expo'nun Android adım sayarı geçmiş okuyamaz). Uygulama kapalıyken gelen gerçek push için ayrıca push token + sunucu fonksiyonu gerekir; şu an uygulama içi bildirim + uygulama açıkken/arka plandayken yerel bildirim var. Web'de kamera yerine dosya seçici açılır (tarayıcı kısıtı).
+
+**Doğrulama:** `tsc` 0 hata · `expo-doctor` 20/20 · iOS/Android/web paketleri derlendi · `npm run test:db` **75/75** (34 yeni kontrol) · yeni dosyalarda lint 0 hata.
+
+## 00. Arayüz temizliği + sunucu kurulumu
 
 - **Uzak Supabase (`ecomap`, `mfrefgdqcivrxugkwikg`)**: iki EARTHCARE migration'ı uygulandı (`earthcare_points_enums`, `earthcare_points`). Doğrulama: 4 ödül, 5 RPC kurulu, puan tabloları realtime yayınında, anon puan değiştiremiyor. **`seed.sql` uzağa gönderilmedi** (bilinen şifreli test hesapları açar). Uzakta zaten 1 `manager` (municipality_admin) var.
 - **Marmaris App portalı kaldırıldı** (`src/app/marmaris.tsx` silindi, hiçbir buton yönlendirmiyor). Başlıktaki "Marmaris App" alt yazısı kaldırıldı.

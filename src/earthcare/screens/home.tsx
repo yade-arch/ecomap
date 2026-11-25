@@ -17,7 +17,8 @@ import {
   StatTile,
 } from '@/earthcare/components/ui';
 import { useEcPoints } from '@/earthcare/points-context';
-import { cardShadow, ec, ecRadius, formatKg, rewardTints } from '@/earthcare/theme';
+import { useWalk } from '@/earthcare/walk';
+import { cardShadow, ec, ecRadius, formatKg, formatPoints, rewardTints } from '@/earthcare/theme';
 import { useRewards } from '@/earthcare/use-rewards';
 import { useAuth } from '@/providers/auth';
 
@@ -31,6 +32,7 @@ export function EarthcareHomeScreen() {
   const { balance, summary, lastChange, loading, error, reload } = useEcPoints();
   const { rewards, reload: reloadRewards } = useRewards();
   const [refreshing, setRefreshing] = useState(false);
+  const walk = useWalk();
 
   const info = () => {
     if (Platform.OS === 'web') window.alert(BALANCE_INFO);
@@ -95,6 +97,26 @@ export function EarthcareHomeScreen() {
             label="Kullanılan Ödül"
           />
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Eko-Ulaşım: yürüyüş ve bisiklet"
+          onPress={() => router.push('/ecopuan/mobility')}
+          style={({ pressed }) => [styles.mobility, pressed && { opacity: 0.9 }]}>
+          <View style={styles.mobilityIcon}>
+            <MaterialCommunityIcons name="walk" size={24} color={ec.white} />
+          </View>
+          <View style={styles.flex}>
+            <Text style={styles.mobilityTitle}>Eko-Ulaşım</Text>
+            <Text style={styles.mobilitySub} numberOfLines={1}>
+              {walk.permission === 'granted'
+                ? `Bugün ${formatPoints(Math.max(walk.steps, walk.server?.steps ?? 0))} adım · +${walk.server?.points_today ?? 0} EC`
+                : 'Yürü veya belediye bisikletiyle sür, EcoPuan kazan'}
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="bicycle" size={22} color={ec.green} />
+          <Ionicons name="chevron-forward" size={18} color={ec.muted} />
+        </Pressable>
 
         <PrimaryButton
           label="Çevresel Katkı Bildir"
@@ -169,6 +191,20 @@ const styles = StyleSheet.create({
   adminSub: { fontWeight: '400', color: '#46627F', fontSize: 12 },
 
   stats: { flexDirection: 'row', gap: 10 },
+  mobility: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: ec.card,
+    borderRadius: ecRadius.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: ec.mintBorder,
+    ...cardShadow,
+  },
+  mobilityIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: ec.green, alignItems: 'center', justifyContent: 'center' },
+  mobilityTitle: { fontWeight: '700', color: ec.ink, fontSize: 15 },
+  mobilitySub: { color: ec.muted, fontSize: 12.5 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tile: {
     flexBasis: '47%',

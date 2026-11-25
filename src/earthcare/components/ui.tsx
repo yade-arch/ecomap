@@ -59,6 +59,7 @@ const MENU: { label: string; icon: IonName; href: Href }[] = [
   { label: 'EcoPuan', icon: 'leaf-outline', href: ECOPUAN_HOME },
   { label: 'Katkı Sağla', icon: 'camera-outline', href: '/ecopuan/contribute' },
   { label: 'Ödüller', icon: 'gift-outline', href: '/ecopuan/rewards' },
+  { label: 'Eko-Ulaşım', icon: 'walk-outline', href: '/ecopuan/mobility' },
   { label: 'Puan Geçmişi', icon: 'time-outline', href: '/ecopuan/history' },
   { label: 'Bildirimler', icon: 'notifications-outline', href: '/notifications' },
   { label: 'Profil', icon: 'person-outline', href: '/profile' },

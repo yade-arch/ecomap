@@ -3,7 +3,7 @@
 // Every action is checked again by the database; this screen only hides buttons for convenience.
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { formatDateTime, type StringKey, useI18n } from '@/i18n';
 import { fetchDepartments, fetchEvents, fetchStaff, muniResolve, muniUpdate, muniVerify } from '@/lib/api';
@@ -13,6 +13,8 @@ import type { Department, Report, ReportEvent, StaffMember } from '@/lib/types';
 import { useAuth } from '@/providers/auth';
 import { Badge, Button, Chip, Field, Notice, SectionTitle } from '@/ui/components';
 import { colors, font, radius, spacing } from '@/ui/theme';
+
+import { CaptureProof } from './CaptureProof';
 
 export function muniColor(status: string | null): { bg: string; fg: string } {
   switch (status) {
@@ -110,7 +112,7 @@ export function MuniSection({ report, onChanged }: { report: Report; onChanged: 
     if (!userId) return;
     let photo;
     try {
-      photo = await pickPhoto(Platform.OS === 'web' ? 'gallery' : 'camera');
+      photo = await pickPhoto();
     } catch (error) {
       setNotice({ tone: 'danger', text: t(errorKey(error)) });
       return;
@@ -172,6 +174,7 @@ export function MuniSection({ report, onChanged }: { report: Report; onChanged: 
       {isStaff ? (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('staff.title')}</Text>
+          <CaptureProof report={report} />
           {notice ? <Notice tone={notice.tone} text={notice.text} /> : null}
 
           {s === 'resolved' ? (

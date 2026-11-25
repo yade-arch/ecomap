@@ -44,6 +44,12 @@ export default function NotificationsScreen() {
       const status = typeof n.data?.muni_status === 'string' ? t(`muni.${n.data.muni_status}` as StringKey) : '';
       return t('notif.report_status', { c: code, s: status });
     }
+    const str = (k: string) => (typeof n.data?.[k] === 'string' || typeof n.data?.[k] === 'number' ? String(n.data[k]) : '');
+    if (n.type === 'mystery_drop') return t('notif.mystery_drop', { l: str('label'), t: str('title') });
+    if (n.type === 'points_adjusted') {
+      const delta = Number(n.data?.delta ?? 0);
+      return t('notif.points_adjusted', { d: `${delta > 0 ? '+' : ''}${delta}`, r: str('reason') });
+    }
     const key = `notif.${n.type}` as StringKey;
     const value = t(key, { c: code });
     return value === key ? t('notif.generic') : value;

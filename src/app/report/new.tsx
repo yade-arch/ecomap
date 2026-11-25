@@ -69,10 +69,10 @@ export default function NewReportScreen() {
     if (userId) void locate();
   }, [userId, locate]);
 
-  const choose = async (source: 'camera' | 'gallery') => {
+  const choose = async () => {
     setError(null);
     try {
-      const picked = await pickPhoto(source);
+      const picked = await pickPhoto();
       if (picked) {
         setPhoto(picked);
         setPhotoPath(null);
@@ -82,10 +82,10 @@ export default function NewReportScreen() {
     }
   };
 
-  const chooseExtra = async (source: 'camera' | 'gallery', index: number) => {
+  const chooseExtra = async (index: number) => {
     setError(null);
     try {
-      const picked = await pickPhoto(source);
+      const picked = await pickPhoto();
       if (picked) {
         setExtraPhotos((prev) => {
           const next = [...prev];
@@ -298,7 +298,7 @@ export default function NewReportScreen() {
       {photo ? (
         <>
           <Image source={{ uri: photo.uri }} style={styles.preview} contentFit="cover" />
-          <Button label={t('new.retake')} variant="secondary" icon="camera-reverse" onPress={() => void choose('camera')} />
+          <Button label={t('new.retake')} variant="secondary" icon="camera-reverse" onPress={() => void choose()} />
           {/* Optional extra photos */}
           <View style={styles.extraPhotos}>
             {[0, 1].map((index) => {
@@ -314,7 +314,7 @@ export default function NewReportScreen() {
                 <Pressable
                   key={index}
                   style={styles.extraAdd}
-                  onPress={() => void chooseExtra('camera', index)}
+                  onPress={() => void chooseExtra(index)}
                   accessibilityRole="button">
                   <Ionicons name="camera-outline" size={24} color={colors.textMuted} />
                   <Text style={styles.extraAddLabel}>{t('new.addPhoto')}</Text>
@@ -326,10 +326,10 @@ export default function NewReportScreen() {
       ) : (
         <>
           <Text style={styles.intro}>{t('new.intro')}</Text>
-          <Button label={t('new.camera')} icon="camera" onPress={() => void choose('camera')} />
+          <Button label={t('new.camera')} icon="camera" onPress={() => void choose()} />
         </>
       )}
-      <Button label={t('new.gallery')} variant="ghost" icon="images" onPress={() => void choose('gallery')} />
+      <Text style={styles.cameraOnly}>{t('new.cameraOnly')}</Text>
 
       <View style={styles.location}>
         {locating ? (
@@ -391,6 +391,7 @@ export default function NewReportScreen() {
 }
 
 const styles = StyleSheet.create({
+  cameraOnly: { fontSize: font.small, color: colors.textMuted, textAlign: 'center' },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.md, flexGrow: 1 },
   title: { fontSize: font.title, fontWeight: '700', color: colors.text },

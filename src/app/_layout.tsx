@@ -4,7 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { MysteryDropAlerts } from '@/earthcare/drop-alerts';
 import { EcPointsRoot } from '@/earthcare/points-context';
+import { WalkTracker } from '@/earthcare/walk';
 import { I18nProvider, useI18n } from '@/i18n';
 import { isConfigured } from '@/lib/config';
 import { AuthProvider, useAuth } from '@/providers/auth';
@@ -54,6 +56,8 @@ export default function RootLayout() {
         <AuthProvider>
           <EcPointsRoot>
             <StatusBar style="dark" />
+            <MysteryDropAlerts />
+            <WalkTracker />
             <Navigation />
           </EcPointsRoot>
         </AuthProvider>

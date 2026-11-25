@@ -15,13 +15,27 @@ export interface MapFocus extends Coords {
   zoomedIn?: boolean;
 }
 
+/** A circular area drawn on the map (Gizli Hazine / 2x EcoPuan zone, or a picked point). */
+export interface MapZone {
+  id: string;
+  latitude: number;
+  longitude: number;
+  radius: number;
+  /** short text on the pin, e.g. "2x" */
+  label: string;
+  title: string;
+}
+
 export interface PollutionMapProps {
   markers: MapMarker[];
   focus: MapFocus | null;
   showsUserLocation: boolean;
   userLocation: Coords | null;
   onMarkerPress: (id: string) => void;
-  onMapPress?: () => void;
+  /** Called with the tapped position. */
+  onMapPress?: (coords: Coords) => void;
+  zones?: MapZone[];
+  onZonePress?: (id: string) => void;
 }
 
 /** Türkiye as the starting view until the user's own position is known. */

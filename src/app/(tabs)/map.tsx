@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ECOPUAN_HOME } from '@/earthcare/components/ui';
+import { dropEnd, dropLabel, formatRemaining, useDrops } from '@/earthcare/mystery';
 import { useEcPoints } from '@/earthcare/points-context';
 import { useI18n } from '@/i18n';
 import { fetchReports } from '@/lib/api';
@@ -13,7 +14,7 @@ import { type Coords, distanceMeters, formatDistance, getCurrentCoords } from '@
 import { publicPhotoUrl, supabase } from '@/lib/supabase';
 import type { Report } from '@/lib/types';
 import PollutionMap from '@/map/PollutionMap';
-import type { MapFocus, MapMarker, MarkerKind } from '@/map/types';
+import type { MapFocus, MapMarker, MapZone, MarkerKind } from '@/map/types';
 import { useAuth } from '@/providers/auth';
 import { Button, Chip, Notice, SeverityBadge, StatusBadge } from '@/ui/components';
 import { colors, font, radius, shadow, spacing } from '@/ui/theme';
@@ -30,6 +31,7 @@ export default function MapScreen() {
   const { t } = useI18n();
   const { userId, profile } = useAuth();
   const { balance: liveBalance } = useEcPoints();
+  const { active: drops, now } = useDrops();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -42,6 +44,18 @@ export default function MapScreen() {
   const [focus, setFocus] = useState<MapFocus | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const zones = useMemo<MapZone[]>(
+    () =>
+      drops.map((d) => ({
+        id: d.id,
+        latitude: d.latitude,
+        longitude: d.longitude,
+        radius: d.radius_m,
+        label: dropLabel(d),
+        title: `${dropLabel(d)} EcoPuan • ${d.title}`,
+      })),
+    [drops],
+  );
   const focusKey = useRef(0);
   const centredOnce = useRef(false);
 
@@ -166,6 +180,11 @@ export default function MapScreen() {
         userLocation={me}
         onMarkerPress={setSelectedId}
         onMapPress={() => setSelectedId(null)}
+        zones={zones}
+        onZonePress={(id) => {
+          const d = drops.find((x) => x.id === id);
+          if (d) moveTo({ latitude: d.latitude, longitude: d.longitude }, true);
+        }}
       />
 
       <View style={[styles.top, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
@@ -203,6 +222,28 @@ export default function MapScreen() {
           <Chip label={t('map.filterCleaned')} selected={filter === 'cleaned'} onPress={() => setFilter('cleaned')} />
           {loading ? <ActivityIndicator color={colors.primary} /> : null}
         </View>
+        {drops.slice(0, 2).map((d) => (
+          // Gizli Hazine: live zone with countdown; tap to fly there.
+          <Pressable
+            key={d.id}
+            accessibilityRole="button"
+            accessibilityLabel={`${dropLabel(d)} EcoPuan Bölgesi, ${d.title}, kalan süre ${formatRemaining(dropEnd(d) - now)}`}
+            onPress={() => moveTo({ latitude: d.latitude, longitude: d.longitude }, true)}
+            style={({ pressed }) => [styles.drop, pressed && styles.pressed]}>
+            <View style={styles.dropBadge}>
+              <Ionicons name="star" size={14} color="#FFFFFF" />
+            </View>
+            <View style={styles.dropBody}>
+              <Text style={styles.dropTitle} numberOfLines={1}>
+                {dropLabel(d)} EcoPuan Bölgesi • Kalan Süre: {formatRemaining(dropEnd(d) - now)}
+              </Text>
+              <Text style={styles.dropSub} numberOfLines={1}>
+                {d.title}
+              </Text>
+            </View>
+            <Ionicons name="locate" size={18} color="#92400E" />
+          </Pressable>
+        ))}
         {failed ? (
           <View style={styles.banner}>
             <Notice tone="danger" text={t('map.loadError')} />
@@ -268,6 +309,22 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
+  drop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#FFFBEB',
+    borderColor: '#F59E0B',
+    borderWidth: 1.5,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    ...shadow,
+  },
+  dropBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center' },
+  dropBody: { flex: 1 },
+  dropTitle: { fontSize: font.small, fontWeight: '800', color: '#92400E' },
+  dropSub: { fontSize: font.small, color: '#78350F' },
   screen: { flex: 1, backgroundColor: colors.surface },
   top: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: spacing.md, gap: spacing.sm },
   topRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },

@@ -20,6 +20,12 @@ const ERRORS: Record<string, string> = {
   photo_missing: 'Fotoğraf yüklenemedi. Lütfen tekrar deneyin.',
   network_error: 'Bağlantı yok. İnternetinizi kontrol edin.',
   camera_denied: 'Kamera izni kapalı. Ayarlardan açabilirsiniz.',
+  invalid_reward: 'Geçersiz ödül: çarpan 1,5–5x, sabit bonus 5–500 EC olmalı.',
+  invalid_duration: 'Süre 1 ile 168 saat arasında olmalı.',
+  drop_not_active: 'Bu bölge zaten sona ermiş.',
+  invalid_bike_code: 'Geçerli bir bisiklet numarası girin (ör. MRM-042).',
+  ride_not_active: 'Bu sürüş artık aktif değil.',
+  invalid_steps: 'Adım sayısı okunamadı.',
 };
 
 export function ecErrorText(error: unknown): string {
